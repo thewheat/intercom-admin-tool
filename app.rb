@@ -129,7 +129,8 @@ end
 def init_intercom
   if @intercom.nil? then
     app_id = ENV["APP_ID"]
-    api_key = ENV["API_KEY"]
+    api_key = ""
+    api_key = ENV["API_KEY"] if (!ENV["API_KEY"].nil? && ENV["API_KEY"])
     @intercom = Intercom::Client.new(app_id: app_id, api_key: api_key)
   end
 end

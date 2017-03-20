@@ -27,7 +27,11 @@ post '/conversation' do
   @email = params[:email]
   @subject = params[:subject]
   simple_spark = SimpleSpark::Client.new
-  from_address = "sender@" + ENV["SPARKPOST_SANDBOX_DOMAIN"]
+
+  # Sandbox details https://developers.sparkpost.com/api/transmissions.html#header-the-sandbox-domain
+  # need to currently enable options: {sandbox :true } too
+  from_address = ENV["FROM_ADDRESS"] if !ENV["FROM_ADDRESS"].nil?
+  from_address = "sender@" + ENV["SPARKPOST_SANDBOX_DOMAIN"] if from_address.nil? || from_address.strip == ""
 
   @hide_get_transcript_form = true
   properties = {
@@ -38,6 +42,7 @@ post '/conversation' do
       html: erb((:conversation),:locals => {:show_email => false}, :layout => false)
     }
   }
+  properties['options'] = { sandbox: true } unless (!ENV["SKIP_SPARKPOST_SANDBOX"].nil? && ENV["SKIP_SPARKPOST_SANDBOX"] != "")
 
   puts properties.inspect
   simple_spark.transmissions.create(properties)
@@ -47,7 +52,10 @@ post '/conversation' do
 end
 
 def can_show_email
-  (ENV["FROM_ADDRESS"] || ENV["SPARKPOST_SANDBOX_DOMAIN"]) && ENV["SPARKPOST_API_KEY"]
+  ( (!ENV["FROM_ADDRESS"].nil? && ENV["FROM_ADDRESS"] != "") ||
+    (!ENV["SPARKPOST_SANDBOX_DOMAIN"].nil? && ENV["SPARKPOST_SANDBOX_DOMAIN"] != "")
+  )  &&
+  (!ENV["SPARKPOST_API_KEY"].nil? && ENV["SPARKPOST_API_KEY"] != "")
 end
 def get_author_type author
   type = "admin"

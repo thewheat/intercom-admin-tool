@@ -3,6 +3,7 @@
 
 # Intercom Admin Tool
 - An admin tool that adds extra functionality to Intercom
+- This is a proof of concept tool written by Customer Support Team
 
 ## Current Features
 - Retrieve conversation transcript
@@ -10,6 +11,10 @@
   - able to email transcript to an email address using Heroku's Sparkpost addon (using the Deploy button would handle this automatically)
 
 ![](/docs/conversation_transcript.png)
+
+- Update unsubscribe status
+  - update data via CSV file or by manually entering values on a line by line basis
+  - update via email / user_id / Intercom ID
 
 ## Configuration - Environment Variables
 - Environment variables are needed for this webhook to work
@@ -21,3 +26,5 @@
 
 ### Optional
 - `API_KEY`: your API key (blank if using a personal token)
+- `SKIP_SPARKPOST_SANDBOX`: set to true if utilising your own Sparkpost details and not the free tier in Heroku
+- `FROM_ADDRESS`: set if using own Sparkpost details

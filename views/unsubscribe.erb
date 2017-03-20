@@ -1,0 +1,36 @@
+<div>
+<h3>Update unsubscribe status</h3>
+<form method="POST" enctype="multipart/form-data">
+	<div>
+		Subscribe status:
+		<label><input type="radio" name="unsubscribe" value="true">Unsubscribe</label>
+		<label><input type="radio" name="unsubscribe" value="false">Resubscribe</label>
+	</div>
+	<div>
+		Identifier:
+		<label><input type="radio" name="identifier" value="email">Email</label>
+		<label><input type="radio" name="identifier" value="user_id">User ID</label>
+		<label><input type="radio" name="identifier" value="id">Intercom ID</label>
+	</div>
+	<div>
+		Upload file:<input type="file" name="file">
+	</div>
+	<div>
+		Manually specify
+		<div>
+		<textarea name="manual_input"></textarea>
+		</div>
+	</div>
+	<div>
+		<input type="submit" value="Update unsubscribe status">
+	</div>
+</form>
+
+<% if @jobs %>
+<h3>Jobs created</h3>
+<ul>
+<% @jobs.each{|job| %>
+	<li><%= job.id %></li>
+<% } %>
+</ul>
+<% end %>

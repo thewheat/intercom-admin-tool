@@ -2,9 +2,12 @@ require 'sinatra'
 require 'intercom'
 require 'dotenv'
 require 'simple_spark'
+require 'csv'
+
 Dotenv.load
 
 DEBUG = ENV["DEBUG"] || nil
+BULK_LIMIT = 50
 
 use Rack::Auth::Basic, "Restricted Area" do |username, password|
   username == ENV["USERNAME"] and password == ENV["PASSWORD"]
@@ -32,9 +35,11 @@ post '/conversation' do
     content:
     { from: { email: from_address },
       subject: @subject,
-      html: erb((:conversation),:locals => {:show_email => false})
+      html: erb((:conversation),:locals => {:show_email => false}, :layout => false)
     }
   }
+
+  puts properties.inspect
   simple_spark.transmissions.create(properties)
   @show_sent = true
   @hide_get_transcript_form = false
@@ -131,6 +136,59 @@ def conversation (conversation_id)
   end
 end
 
+
+# Handle POST-request (Receive and save the uploaded file)
+get "/unsubscribe" do
+  erb :unsubscribe
+end
+
+# Handle POST-request (Receive and save the uploaded file)
+post "/unsubscribe" do
+
+  init_intercom
+  status = params[:unsubscribe]
+  identifier = params[:identifier]
+
+  items = []
+  @jobs = []
+
+  # process uploaded file
+  if params[:file] then
+    file = params[:file][:tempfile]
+    CSV.foreach(file) do |row|
+      item = { unsubscribed_from_emails: status}
+      item[identifier] = row.first.strip
+      items << item
+      if items.count == BULK_LIMIT then
+        puts items.inspect
+        @jobs << @intercom.users.submit_bulk_job(create_items: items)
+        items = []
+      end
+    end
+  end
+
+  # process manual text
+  params[:manual_input].each_line{|line|
+    item = { unsubscribed_from_emails: status}
+    item[identifier] = line.strip
+    items << item
+    if items.count == BULK_LIMIT then
+      puts items.inspect
+      @jobs << @intercom.users.submit_bulk_job(create_items: items)
+      items = []
+    end
+  }
+
+  # proces any remaining
+  if items.count > 0 then
+    puts items.inspect
+    @jobs << @intercom.users.submit_bulk_job(create_items: items)
+    items = []
+  end
+  erb :unsubscribe
+end
+
+
 helpers do
   def author_is_admin (author)
     "admin" == get_author_type(author)
@@ -147,4 +205,4 @@ helpers do
       author_list[type][id]
     end
   end
-end 
+end

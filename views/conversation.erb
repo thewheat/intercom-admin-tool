@@ -1,4 +1,4 @@
-<div style="max-width: 800px; margin: 0 auto">
+<div>
 <h3>Conversation Transcript</h3>
 <% if show_email then%>
 	<% if @show_sent then %>
@@ -63,5 +63,7 @@ style_no_margin = "style='margin-top: 0'"
 </div>
 <% end %>
 <% } %>
+<% else %>
+<strong>No Conversation found</strong>
 <% end %>
 </div>

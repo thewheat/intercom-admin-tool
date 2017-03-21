@@ -17,6 +17,47 @@ get '/' do
   erb :index
 end
 
+get '/conversation_reassignment' do
+  init_intercom
+  get_admins
+  erb :conversation_reassignment
+end
+post '/conversation_reassignment' do
+  init_intercom
+  get_admins
+
+  source_status = params[:source_status]
+  source_status = (source_status != "closed")
+  source = params[:source]
+  search = {type: 'admin', open: source_status, id: source}
+  search[:id] = "nobody" if source.strip == "0"
+  puts search.inspect
+
+  destination = params[:destination]
+  destination_status = params[:destination_status]
+
+  action = "close" if (destination_status.strip == "close")
+  action = "open" if (destination_status.strip == "open")
+
+  admin = params[:admin]
+
+  @intercom.conversations.find_all(search).each {|conversation|
+    if action == "close" then
+      @intercom.conversations.close(id: conversation.id, admin_id: admin)
+    elsif action == "open" then
+      @intercom.conversations.open(id: conversation.id, admin_id: admin)
+    else
+      @intercom.conversations.assign(id: conversation.id, admin_id: admin, assignee_id: destination)
+    end
+  }
+
+  erb :conversation_reassignment
+end
+
+def get_admins
+  @admins = @intercom.admins.all rescue []
+end
+
 get '/conversation' do
   get_conversation_details
   erb :conversation, :locals => {:show_email => can_show_email}

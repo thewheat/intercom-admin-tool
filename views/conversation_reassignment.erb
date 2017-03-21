@@ -1,0 +1,30 @@
+<div>
+<h3>Conversation Reassignment/Closure</h3>
+<form method="POST" enctype="multipart/form-data">
+	<div>
+		For all <select name="source_status"><option>open</option><option>closed</option></select> conversations from inbox of
+		<div><input name="source" placeholder="admin id"></input> (0 for Unassigned)</div>
+		<select name="destination_status"><option>reassign to</option><option>open</option><option>close</option></select>
+		<div><input name="destination" placeholder="admin id for reassignment"></input>(0 for Unassigned)</div>
+		Perform action as
+		<div><input name="admin" placeholder="admin id who will be performing the action"></input></div>
+	</div>
+	<div>
+		<input type="submit" value="Reassign">
+	</div>
+</form>
+
+<% if !@admins.nil? && @admins.count > 0 %>
+<h3>Admins</h3>
+<table border='0'>
+<% @admins.select{|admin| admin.email.nil? == false }.each{|admin| %>
+	<tr><th><%= admin.id %></th><td>:</td><td><%= admin.name %></td></tr>
+<% } %>
+</table>
+<h3>Teams</h3>
+<table border='0'>
+<% @admins.select{|admin| admin.email.nil? == true }.each{|admin| %>
+	<tr><th><%= admin.id %></th><td>:</td><td><%= admin.name %></td></tr>
+<% } %>
+</table>
+<% end %>

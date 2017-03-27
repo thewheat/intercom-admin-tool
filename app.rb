@@ -3,11 +3,17 @@ require 'intercom'
 require 'dotenv'
 require 'simple_spark'
 require 'csv'
+require 'json'
+require 'Haml'
+require 'sinatra/form_helpers'
 
 Dotenv.load
 
 DEBUG = ENV["DEBUG"] || nil
 BULK_LIMIT = 50
+
+set :show_exceptions, true
+
 
 use Rack::Auth::Basic, "Restricted Area" do |username, password|
   username == ENV["USERNAME"] and password == ENV["PASSWORD"]
@@ -17,31 +23,127 @@ get '/' do
   erb :index
 end
 
+
+
+post '/person' do
+  add_params = params["add"]
+  id = add_params[:id]
+  email = add_params[:email]
+  user_id = add_params[:user_id]
+  name = add_params[:name]
+  data = {}
+  @msg = ""
+  if add_params[:other_data] != ""
+    begin
+      # there has to be a better way that to do this.....
+      data = JSON.parse(JSON.generate(eval(add_params[:other_data])))
+    rescue Exception => e
+      @msg = "Invalid JSON: #{e.message}"
+    end
+  end 
+  [:name, :id, :email, :user_id].each{|var|
+    data[var] = add_params[var] if !add_params[var].nil?  && add_params[var].strip != "" 
+  }
+  if !@msg != ""
+    init_intercom
+    source = get_person_source add_params
+    if !source.nil? 
+      begin
+        @record = format_intercom_object(source.create(data))
+      rescue Intercom::ResourceNotFound
+        @msg = "Record not found"
+      rescue Intercom::IntercomError => e
+        @msg = "Intercom error message: #{e.message}"
+      rescue Exception => e
+        @msg = "Other error: #{e.message}"
+      end
+    end
+  end
+  erb :person
+end
+
+get '/person' do
+  search = {}
+  search_params = params["search"]
+  [:id, :email, :user_id].each{|var|
+    search[var] = search_params[var] if !search_params[var].nil?  && search_params[var].strip != "" 
+  } if search_params
+  if search.keys.count > 0 then
+    init_intercom
+    source = get_person_source search_params
+    if !source.nil? 
+      begin
+        @record = format_intercom_object(source.find(search))
+      rescue Intercom::ResourceNotFound
+        @msg = "Record not found"
+      rescue Intercom::IntercomError => e
+        @msg = "Intercom error message: #{e.message}"
+      rescue Exception => e
+        @msg = "Other error: #{e.message}"
+      end
+    end
+  end
+  erb :person
+end
+# unsure how to format this nicely
+def format_intercom_object(data)
+  create_json_printable_object(JSON::GenericObject.from_hash(data).to_hash)
+end
+def create_json_printable_object(data)
+  data.keys.each{|key|
+    if data[key].class == JSON::GenericObject
+        data[key] = data[key].to_h
+    elsif data[key].class == Array
+        data[key].each_with_index{|item,index|
+          data[key][index] = create_json_printable_object(item.to_hash) unless item.nil?
+        }
+    end
+  } unless data.keys.nil?
+  return data
+end
+
+def get_person_source (params)
+  case params[:type]
+    when "User"
+      @intercom.users
+    when "Lead"
+      @intercom.contacts
+    when "Visitor"
+      @intercom.visitors
+    else
+      nil
+  end
+end
+
+
+
 get '/conversation_reassignment' do
   init_intercom
   get_admins
   erb :conversation_reassignment
 end
+
 post '/conversation_reassignment' do
   init_intercom
   get_admins
 
-  source_status = params[:source_status]
+  source_status = params[:reassign][:source_status]
   source_status = (source_status != "closed")
-  source = params[:source]
+  source = params[:reassign][:source]
   search = {type: 'admin', open: source_status, id: source}
   search[:id] = "nobody" if source.strip == "0"
   puts search.inspect
 
-  destination = params[:destination]
-  destination_status = params[:destination_status]
+  destination = params[:reassign][:destination]
+  destination_status = params[:reassign][:destination_status]
 
   action = "close" if (destination_status.strip == "close")
   action = "open" if (destination_status.strip == "open")
 
-  admin = params[:admin]
+  admin = params[:reassign][:admin]
 
   @intercom.conversations.find_all(search).each {|conversation|
+    puts "action: #{action}"
     if action == "close" then
       @intercom.conversations.close(id: conversation.id, admin_id: admin)
     elsif action == "open" then
@@ -55,7 +157,7 @@ post '/conversation_reassignment' do
 end
 
 def get_admins
-  @admins = @intercom.admins.all rescue []
+  @admins = @admins || @intercom.admins.all.select{|ad| ad.email.nil? || !ad.email.include?("@bots.intercom.io") } rescue []
 end
 
 get '/conversation' do
@@ -160,7 +262,8 @@ def get_all_author_details
   @authors["admin"].each{|id,obj|
     admin_ids << id
   }
-  data = @intercom.admins.all.select {|admin| admin_ids.include?(admin.id)}
+
+  data = get_admins.select {|admin| admin_ids.include?(admin.id)}
   data.each{|admin|
     authors_details["admin"][admin.id] = admin.name || admin.email
   }

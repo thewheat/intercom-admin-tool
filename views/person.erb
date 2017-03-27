@@ -1,0 +1,52 @@
+<div>
+<h3>View Entry</h3>
+<form method="GET" enctype="multipart/form-data">
+	<div>
+		<%= "Type #{params[:search][:type]}" if params[:search] %>
+		Record type:
+	    <%= radio(:search, :type, ['User', 'Lead', 'Visitor']) %>
+	</div>
+	<div>
+		Email
+ 		<div><%= input(:search, :email, :placeholder => "email") %></div>
+		User ID
+ 		<div><%= input(:search, :user_id, :placeholder => "user id") %></div>
+		Intercom ID
+ 		<div><%= input(:search, :id, :placeholder => "id") %></div>
+	</div>
+	<div>
+		<input type="submit" value="View data">
+	</div>
+</form>
+
+<hr>
+<h3>Add / Edit Entry</h3>
+<form method="POST" enctype="multipart/form-data">
+	<div>
+		<%= "Type #{params[:add][:type]}" if params[:add] %>
+		Record type:
+	    <%= radio(:add, :type, ['User', 'Lead', 'Visitor']) %>
+	</div>
+	<div>
+		Name
+ 		<div><%= input(:add, :name, :placeholder => "name") %></div>
+		Email
+ 		<div><%= input(:add, :email, :placeholder => "email") %></div>
+		User ID
+ 		<div><%= input(:add, :user_id, :placeholder => "user id") %></div>
+		Intercom ID
+ 		<div><%= input(:add, :id, :placeholder => "id") %></div>
+		Other data (JSON format)
+ 		<div><%= textarea(:add, :other_data) %></div>
+	</div>
+	<div>
+		<input type="submit" value="Create/Update">
+	</div>
+</form>
+<hr>
+<% if @msg %>
+<h4 class="error"><%= @msg %> </h4>
+<% end %>
+<% if @record %>
+	<pre><%= JSON.pretty_generate(@record) %></pre>
+<% end %>

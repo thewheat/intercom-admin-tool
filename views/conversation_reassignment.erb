@@ -1,20 +1,67 @@
 <div>
-<h3>Conversation Reassignment/Closure</h3>
+<% has_admins = !@admins.nil? && @admins.count > 0 %>
+<h3>Conversation Open/Close</h3>
 <form method="POST" enctype="multipart/form-data">
 	<div>
-		For all <select name="source_status"><option>open</option><option>closed</option></select> conversations from inbox of
-		<div><input name="source" placeholder="admin id"></input> (0 for Unassigned)</div>
-		<select name="destination_status"><option>reassign to</option><option>open</option><option>close</option></select>
-		<div><input name="destination" placeholder="admin id for reassignment"></input>(0 for Unassigned)</div>
-		Perform action as
-		<div><input name="admin" placeholder="admin id who will be performing the action"></input></div>
+		<div>
+			For all <%= select(:reassign, :source_status, ["open", "closed"]) %> conversations in
+			<% if has_admins %>
+			    <%= select(:reassign, :source, [[0,"Unassigned"]]+@admins.map{|admin| [ admin.id, (admin.email.nil? ? "Team: " : "") + admin.name + " [#{admin.id}]"] }) %>
+			<% else %>
+				<%= input(:reassign, :source, :placeholder => "admin_id") %> (0 for Unassigned)
+			<% end %>
+			's inbox
+			<%= select(:reassign, :destination_status, ["open", "close"]) %> them
+		</div>
+		<div>
+			Perform action as
+			<% if has_admins %>
+			    <%= select(:reassign, :admin, @admins.select{|admin| !admin.email.nil? }.map{|admin| [ admin.id, "#{admin.name} [#{admin.id}]"] }) %>
+			<% else %>
+				<%= input(:reassign, :admin, :placeholder => "admin_id who will be performing the action") %>
+			<% end %>
+		</div>
+	</div>
+	<div>
+		<input type="submit" value="Open / Close">
+	</div>
+</form>
+
+<h3>Conversation Reassignment</h3>
+<form method="POST" enctype="multipart/form-data">
+	<div>
+		<div>
+			For all <%= select(:reassign, :source_status, ["open", "closed"]) %> conversations in
+			<% if has_admins %>
+			    <%= select(:reassign, :source, [[0,"Unassigned"]]+@admins.map{|admin| [ admin.id, (admin.email.nil? ? "Team: " : "") + admin.name + " [#{admin.id}]"] }) %>
+			<% else %>
+				<%= input(:reassign, :source, :placeholder => "admin_id") %> (0 for Unassigned)
+			<% end %>
+			's inbox
+		</div>
+		<div>
+			<%= select(:reassign, :destination_status, ["reassign"]) %> them to
+			<% if has_admins %>
+			    <%= select(:reassign, :destination, [[0,"Unassigned"]]+@admins.map{|admin| [ admin.id, (admin.email.nil? ? "Team: " : "") + admin.name + " [#{admin.id}]"] }) %>
+			<% else %>
+				<%= input(:reassign, :destination, :placeholder => "admin_id for reassignment") %> (0 for Unassigned)
+			<% end %>
+		</div>
+		<div>
+			Perform action as
+			<% if has_admins %>
+			    <%= select(:reassign, :admin, @admins.select{|admin| !admin.email.nil? }.map{|admin| [ admin.id, "#{admin.name} [#{admin.id}]"] }) %>
+			<% else %>
+				<%= input(:reassign, :admin, :placeholder => "admin_id who will be performing the action") %>
+			<% end %>
+		</div>
 	</div>
 	<div>
 		<input type="submit" value="Reassign">
 	</div>
 </form>
 
-<% if !@admins.nil? && @admins.count > 0 %>
+<% if has_admins %>
 <h3>Admins</h3>
 <table border='0'>
 <% @admins.select{|admin| admin.email.nil? == false }.each{|admin| %>

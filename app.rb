@@ -4,7 +4,7 @@ require 'dotenv'
 require 'simple_spark'
 require 'csv'
 require 'json'
-require 'Haml'
+require 'haml'
 require 'sinatra/form_helpers'
 
 Dotenv.load

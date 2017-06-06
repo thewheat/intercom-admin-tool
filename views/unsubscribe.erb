@@ -1,24 +1,29 @@
 <div>
-<h3>Update unsubscribe status</h3>
+<h3>Update User unsubscribe status</h3>
+<ul>
+	<li>Update user <a href="https://docs.intercom.com/help-and-faqs/how-do-i-unsubscribe-users/how-do-i-unsubscribe-users-from-receiving-emails">unsubscribe status</a></li>
+	<li>Code currently supports only users and not leads</li>
+</ul>
 <form method="POST" enctype="multipart/form-data">
 	<div>
-		Subscribe status:
+		<b>1. Subscribe status:</b>
 		<label><input type="radio" name="unsubscribe" value="true">Unsubscribe</label>
 		<label><input type="radio" name="unsubscribe" value="false">Resubscribe</label>
 	</div>
 	<div>
-		Identifier:
+		<b>2. Record Identifier:</b>
 		<label><input type="radio" name="identifier" value="email">Email</label>
 		<label><input type="radio" name="identifier" value="user_id">User ID</label>
 		<label><input type="radio" name="identifier" value="id">Intercom ID</label>
 	</div>
 	<div>
-		Upload file:<input type="file" name="file">
+		<b>3a. Upload CSV file:</b><input type="file" name="file"> <br />
+		(upload a CSV file with each row being the value of identifier of the record to update)
 	</div>
 	<div>
-		Manually specify
+		<b>3b. Manually specify identifiers</b> (specify list of record identifier of records to update)
 		<div>
-		<textarea name="manual_input"></textarea>
+		<textarea name="manual_input" rows="10" cols="80"></textarea>
 		</div>
 	</div>
 	<div>

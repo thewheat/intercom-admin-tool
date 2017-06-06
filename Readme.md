@@ -16,6 +16,21 @@
   - update data via CSV file or by manually entering values on a line by line basis
   - update via email / user_id / Intercom ID
 
+![](/docs/unsubscribe.png)
+
+- Conversations Reassignment
+  - allows reassignment of conversations in bulk
+  - allows opening and closing as well
+
+![](/docs/conversation_reassignment.png)
+
+- View / Edit record data
+  - a very simple way to read and write record data in Intercom
+  - currently API returns archived attribute within the listing
+
+![](/docs/view_edit_data.png)
+
+
 ## Configuration - Environment Variables
 - Environment variables are needed for this webhook to work
 
